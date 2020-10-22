@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>demo for image marker</title>
+    <script src='../../AILabel.pkg.min.js'></script>
+
+    <style>
+        #map {
+        	width: 100%;
+        	height: 500px;
+        	border: 1px solid red;
+        	position: relative;
+        	cursor: crosshair;
+            -moz-user-select:none;/*火狐*/
+            -webkit-user-select:none;/*webkit浏览器*/
+            -ms-user-select:none;/*IE10*/
+            -khtml-user-select:none;/*早期浏览器*/
+            user-select:none;
+        }
+        .command-btn {
+            display: inline-block;
+            margin: 0 20px;
+            margin-top: 10px;
+            font-size: 13px;
+            padding: 5px 10px;
+            border: 1px solid #aaa;
+        }
+	</style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="drawRect" class="command-btn" onclick="setMode('drawRect')">编辑模式</div>
+    <div id="pan" class="command-btn" onclick="setMode('pan')">平移模式</div>
+
+    <script>
+        // 参数
+        const imgWidth = 4256;
+        const imgHeight = 2832;
+        let gFeatureStyle = {};
+        const imgSrc = '../../imgs/timg.jpeg'; //图片路径
+
+        // 容器对象声明
+        // cx, cy：初始中心点坐标
+        // autoPan: 绘制过程中是否允许自动平移
+        // autoZoom：绘制过程中是否允许自动滚轮缩放
+        let gMap = new AILabel.Map('map', {
+            zoom: imgWidth * 2, 
+            cx: 0, cy: 0, 
+            zoomMax: imgWidth * 10, zoomMin: imgWidth / 10, 
+            autoPan: true, drawZoom: true
+        });
+
+        // 模式转换
+        // 暂时只提供两种模式：矩形绘制和平移模式
+        function setMode(mode){
+            // 根据传入参数变换样式
+            if (mode === "drawRect"){
+                gFeatureStyle = new AILabel.Style({strokeColor: '#0000FF', lineWeight: 2});
+            }
+            gMap && gMap.setMode(mode, gFeatureStyle);
+        }
+
+        // 封装的节流函数
+        function throttle(fn, delay=500){
+            let timer = null;
+            return function () {
+                if (timer){
+                    return;
+                }
+                timer = setTimeout( () => {
+                    fn.apply(this, arguments);
+                    timer = null;
+                }, delay);
+            };
+        }
+
+        // 缩放比例尺 左上角
+        const scaleControl = new AILabel.Control.Scale(
+			'scale-control-id',
+			{postion: {left: 10, top: 10}}
+		);
+        gMap.addControl(scaleControl);
+        
+        // 图片层实例添加
+        let gImageLayer = new AILabel.Layer.Image('img', imgSrc, 
+            {w: imgWidth, h: imgHeight},
+            {zIndex: 1})
+        gMap.addLayer(gImageLayer);
+
+        // 缩略图
+        const eagleControl = new AILabel.Control.EagleMap(
+			'eagle-control-id',
+			{
+                container: 'eagle-map', // 自定义缩略图控件展示位置
+                // postion: {right: 10, bottom: 10}, // 当存在container时，此参数不需要传
+                image: {src: imgSrc, width: imgWidth, height: imgHeight},
+                grid: {
+                    rowCount: 3,
+                    columnCount: 3,
+                    color: 'blue'
+                },
+                size: {
+                    width: 200,
+                    height: 150
+                }
+			}
+		);
+        gMap.addControl(eagleControl);
+
+        // 矢量层实例添加
+        let gFeatureLayer = new AILabel.Layer.Feature('featureLayer', {zIndex: 2, transparent: true});
+        gMap.addLayer(gFeatureLayer);
+
+        // 以下是对矩形边框绘制的监听
+        // 矩形边框绘制完成
+        gMap.events.on('geometryDrawDone', function (type, points) {
+            //console.log("draw done");
+            // 生成元素唯一标志（时间戳）
+            const timestamp = new Date().getTime();
+            // 元素添加展示
+            let fea = new AILabel.Feature.Rect(`feature-${timestamp}`, points, {
+                name: ''
+            }, gFeatureStyle);
+            gFeatureLayer.addFeature(fea);
+        });
+
+        // 进入编辑模式之后，编辑边框完成
+        gMap.events.on('geometryEditDone', function (type, activeFeature, points) {
+            //console.log("edit done");
+            activeFeature.update({points});
+            activeFeature.show();
+        });
+
+        // feature-reset监听
+        gMap.events.on('featureStatusReset', function () {
+            //console.log("feature status reset");
+            gMap.mLayer.removeAllMarkers();
+        });
+
+        // fixme：这里做一个节流 done
+        // ？为什么这里要做编辑中的监听
+        // 可以实时变更最右方编辑框中的坐标数据
+        gMap.events.on('geometryEditing', throttle(function (type, feature, points) {
+            //console.log("geometry editing", points);
+            if (!gMap.mLayer) return;
+            // 得到选定的边框id
+            const marker = gMap.mLayer.getMarkerById(`marker-${feature.id}`);
+            if (!marker) return; //不存在就返回
+            
+            const bounds = AILabel.Util.getBounds(points);
+            const leftTopPoint = bounds[0]; // 边界坐上角坐标
+            marker.update({x: leftTopPoint.x, y: leftTopPoint.y});
+        }, 1000));
+
+        // 双击选中编辑矩形框，进入编辑模式
+        gMap.events.on('featureSelected', function (feature) {
+            //console.log("feature selected");
+            let cFeature = feature;
+            // 删除按钮添加
+            const featureBounds = cFeature.getBounds();
+            const leftTopPoint = featureBounds[0]; // 边界坐上角坐标
+            let deleteMarker = new AILabel.Marker(`marker-${cFeature.id}`,
+                {
+                    src: '../../imgs/delete.png',
+                    x: leftTopPoint.x,
+                    y: leftTopPoint.y,
+                    offset: {
+                        x: 0,
+                        y: 0
+                    },
+                    featureId: cFeature.id
+                });
+            gMap.mLayer.addMarker(deleteMarker);
+            
+            // 监听删除边框事件
+            // 删除选定的边框
+            deleteMarker.regEvent('click', function () {
+                //console.log("delete marker");
+                // 执行选中元素删除
+                gFeatureLayer.removeFeatureById(this.info.featureId);
+                // 对应删除标注层中删除（x）icon
+                gMap.mLayer.removeAllMarkers();
+            });
+        });
+
+        window.onresize = function () {
+            gMap && gMap.resize();
+        }
+    </script>
+</body>
+</html>
