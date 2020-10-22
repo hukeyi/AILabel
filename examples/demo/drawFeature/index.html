@@ -17,7 +17,7 @@
     <script src='../../../jslib/gLayer.js'></script>
     <script src='../../../jslib/gControl.js'></script>
 
-	<!-- <script src='../../AILabel.pkg.min.js'></script> -->
+	<script src='../../AILabel.pkg.min.js'></script>
 	<style>
         #map {
         	width: 100%;
@@ -45,9 +45,9 @@
     <div id="map"></div>
     <div id="zoomIn" class="command-btn" onclick="zoomIn();">放大</div>
     <div id="drawRect" class="command-btn" onclick="setMode('drawRect')">绘制矩形</div>
-    <div id="drawRoi" class="command-btn" onclick="setMode('drawRoi')">绘制ROI</div>
-    <div id="drawNotRoi" class="command-btn" onclick="setMode('drawNotRoi')">绘制非ROI</div>
-    <div id="drawPolygon" class="command-btn" onclick="setMode('drawPolygon')">绘制多边形</div>
+    <!-- <div id="drawRoi" class="command-btn" onclick="setMode('drawRoi')">绘制ROI</div>
+    <div id="drawNotRoi" class="command-btn" onclick="setMode('drawNotRoi')">绘制非ROI</div> -->
+    <!-- <div id="drawPolygon" class="command-btn" onclick="setMode('drawPolygon')">绘制多边形</div>
     <div id="drawMask" class="command-btn" style="background-color: #3377ff;" onclick="setMode('drawMask', '#FF0000', 10)">掩膜:红色:10</div>
     <div id="drawMask2" class="command-btn" onclick="setMode('drawMask2', 'rgba(0,0,255,1)', 20)">掩膜:蓝色:20</div>
     <div id="drawMask3" class="command-btn" onclick="setMode('drawMask3', '#9370DB', 30)">掩膜:紫色:30</div>
@@ -56,12 +56,12 @@
     <div id="clearMask" class="command-btn" onclick="getDefaultMaskPixels()">server涂抹数据回显</div>
     <div id="drawPoint" class="command-btn" onclick="setMode('drawPoint')">绘制点</div>
     <div id="drawPolyline" class="command-btn" onclick="setMode('drawPolyline', '#0000FF', 10)">绘制多段线:蓝色:10</div>
-    <div id="drawPolyline2" class="command-btn" onclick="setMode('drawPolyline2', '#9370DB', 20)">绘制多段线:紫色:20</div>
+    <div id="drawPolyline2" class="command-btn" onclick="setMode('drawPolyline2', '#9370DB', 20)">绘制多段线:紫色:20</div> -->
     <div id="pan" class="command-btn" onclick="setMode('pan')">平移</div>
     <div id="setcenter" class="command-btn" onclick="setCenter()">中心点设置(0,0)</div>
-    <div id="setZoom" class="command-btn" onclick="setZoom()">zoom设置(1000)</div>
+    <!-- <div id="setZoom" class="command-btn" onclick="setZoom()">zoom设置(1000)</div>
     <div id="setTipOff" class="command-btn" onclick="setTipOnOff(false)">关闭编辑tip提示</div>
-    <div id="setTipOn" class="command-btn" onclick="setTipOnOff(true)">打开编辑tip提示</div>
+    <div id="setTipOn" class="command-btn" onclick="setTipOnOff(true)">打开编辑tip提示</div> -->
     <script>
         let globalRoiType = null;
 
