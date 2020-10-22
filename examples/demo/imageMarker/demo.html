@@ -36,6 +36,7 @@
 
     <script>
         // 参数
+        // 注意：这里的坐标系原点为图片的中心点
         const imgWidth = 4256;
         const imgHeight = 2832;
         let gFeatureStyle = {};
@@ -59,6 +60,12 @@
             if (mode === "drawRect"){
                 gFeatureStyle = new AILabel.Style({strokeColor: '#0000FF', lineWeight: 2});
             }
+            let btnNodes = document.getElementsByClassName('command-btn');
+            for (let i = 0; i < btnNodes.length; i++){
+                btnNodes[i].style.backgroundColor = "#FFF";
+            }
+            document.getElementById(mode).style.backgroundColor = "#3377ff";
+
             gMap && gMap.setMode(mode, gFeatureStyle);
         }
 
@@ -124,6 +131,7 @@
                 name: ''
             }, gFeatureStyle);
             gFeatureLayer.addFeature(fea);
+            console.log("draw done：矩形框坐标数据", points);
         });
 
         // 进入编辑模式之后，编辑边框完成
@@ -131,6 +139,8 @@
             //console.log("edit done");
             activeFeature.update({points});
             activeFeature.show();
+            // 通过points来更新编辑框中的坐标范围数据
+            console.log("edit done：矩形框坐标数据", points);
         });
 
         // feature-reset监听
